@@ -48,7 +48,7 @@
             @foreach (var movie in Model.ContinueWatching)
             {
                 <div class="movie-card">
-                    <a asp-page="/Watch" asp-route-slug="@movie.Slug">
+                    <div class="card-inner">
                         @if (!string.IsNullOrEmpty(movie.PosterPath))
                         {
                             <img src="/Media/Posters/@movie.PosterPath" alt="@movie.Title" class="movie-poster" loading="lazy" />
@@ -66,7 +66,27 @@
                                 <div class="progress-fill" style="width: @(progress)%"></div>
                             </div>
                         }
-                    </a>
+                        <div class="card-hover-preview">
+                            <h4>@movie.Title</h4>
+                            <div class="preview-meta">
+                                @if (movie.Year.HasValue) { <span>@movie.Year</span> }
+                                @if (movie.Rating.HasValue) { <span>@movie.Rating.Value.ToString("0.0")</span> }
+                                @if (movie.Duration.HasValue) { <span>@movie.Duration min</span> }
+                            </div>
+                            @if (!string.IsNullOrEmpty(movie.Genre))
+                            {
+                                <p class="preview-genre">@movie.Genre</p>
+                            }
+                            @if (!string.IsNullOrEmpty(movie.Description))
+                            {
+                                <p class="preview-description">@(movie.Description.Length > 120 ? movie.Description.Substring(0, 120) + "..." : movie.Description)</p>
+                            }
+                            <div class="preview-buttons">
+                                <a asp-page="/Watch" asp-route-slug="@movie.Slug" class="btn-preview-play">Play</a>
+                                <a asp-page="/Movies/Details" asp-route-id="@movie.Id" class="btn-preview-info">Info</a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="movie-info">
                         <h3 class="movie-title">@movie.Title</h3>
                     </div>
@@ -84,7 +104,7 @@
             @foreach (var movie in Model.RecentlyAdded)
             {
                 <div class="movie-card">
-                    <a asp-page="/Watch" asp-route-slug="@movie.Slug">
+                    <div class="card-inner">
                         @if (!string.IsNullOrEmpty(movie.PosterPath))
                         {
                             <img src="/Media/Posters/@movie.PosterPath" alt="@movie.Title" class="movie-poster" loading="lazy" />
@@ -95,7 +115,27 @@
                                 <span>@movie.Title</span>
                             </div>
                         }
-                    </a>
+                        <div class="card-hover-preview">
+                            <h4>@movie.Title</h4>
+                            <div class="preview-meta">
+                                @if (movie.Year.HasValue) { <span>@movie.Year</span> }
+                                @if (movie.Rating.HasValue) { <span>@movie.Rating.Value.ToString("0.0")</span> }
+                                @if (movie.Duration.HasValue) { <span>@movie.Duration min</span> }
+                            </div>
+                            @if (!string.IsNullOrEmpty(movie.Genre))
+                            {
+                                <p class="preview-genre">@movie.Genre</p>
+                            }
+                            @if (!string.IsNullOrEmpty(movie.Description))
+                            {
+                                <p class="preview-description">@(movie.Description.Length > 120 ? movie.Description.Substring(0, 120) + "..." : movie.Description)</p>
+                            }
+                            <div class="preview-buttons">
+                                <a asp-page="/Watch" asp-route-slug="@movie.Slug" class="btn-preview-play">Play</a>
+                                <a asp-page="/Movies/Details" asp-route-id="@movie.Id" class="btn-preview-info">Info</a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="movie-info">
                         <h3 class="movie-title">@movie.Title</h3>
                         @if (movie.Year.HasValue)
@@ -117,7 +157,7 @@
             @foreach (var movie in Model.GenreMovies[genre])
             {
                 <div class="movie-card">
-                    <a asp-page="/Watch" asp-route-slug="@movie.Slug">
+                    <div class="card-inner">
                         @if (!string.IsNullOrEmpty(movie.PosterPath))
                         {
                             <img src="/Media/Posters/@movie.PosterPath" alt="@movie.Title" class="movie-poster" loading="lazy" />
@@ -128,7 +168,27 @@
                                 <span>@movie.Title</span>
                             </div>
                         }
-                    </a>
+                        <div class="card-hover-preview">
+                            <h4>@movie.Title</h4>
+                            <div class="preview-meta">
+                                @if (movie.Year.HasValue) { <span>@movie.Year</span> }
+                                @if (movie.Rating.HasValue) { <span>@movie.Rating.Value.ToString("0.0")</span> }
+                                @if (movie.Duration.HasValue) { <span>@movie.Duration min</span> }
+                            </div>
+                            @if (!string.IsNullOrEmpty(movie.Genre))
+                            {
+                                <p class="preview-genre">@movie.Genre</p>
+                            }
+                            @if (!string.IsNullOrEmpty(movie.Description))
+                            {
+                                <p class="preview-description">@(movie.Description.Length > 120 ? movie.Description.Substring(0, 120) + "..." : movie.Description)</p>
+                            }
+                            <div class="preview-buttons">
+                                <a asp-page="/Watch" asp-route-slug="@movie.Slug" class="btn-preview-play">Play</a>
+                                <a asp-page="/Movies/Details" asp-route-id="@movie.Id" class="btn-preview-info">Info</a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="movie-info">
                         <h3 class="movie-title">@movie.Title</h3>
                         @if (movie.Rating.HasValue)
@@ -141,3 +201,16 @@
         </div>
     </div>
 }
+
+@* Skeleton loaders shown via JS while content loads *@
+<template id="skeleton-card-template">
+    <div class="movie-card skeleton-card">
+        <div class="card-inner">
+            <div class="skeleton-poster"></div>
+        </div>
+        <div class="movie-info">
+            <div class="skeleton-title"></div>
+            <div class="skeleton-year"></div>
+        </div>
+    </div>
+</template>
