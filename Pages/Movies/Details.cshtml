@@ -1,0 +1,107 @@
+@page "{id:int}"
+@model DetailsModel
+@{
+    ViewData["Title"] = Model.Movie?.Title ?? "Movie Details";
+}
+
+@if (Model.Movie != null)
+{
+    <div class="details-hero" style="@(!string.IsNullOrEmpty(Model.Movie.BackdropPath) ? $"background-image: linear-gradient(to bottom, rgba(20,20,20,0.3) 0%, rgba(20,20,20,0.9) 70%, #141414 100%), url('/Media/Posters/{Model.Movie.BackdropPath}');" : "background: linear-gradient(to bottom, #1a1a1a, #141414);")">
+        <div class="details-content">
+            <h1 class="details-title">@Model.Movie.Title</h1>
+
+            <div class="details-meta">
+                @if (Model.Movie.Year.HasValue)
+                {
+                    <span class="meta-item">@Model.Movie.Year</span>
+                }
+                @if (Model.Movie.Rating.HasValue)
+                {
+                    <span class="meta-item">⭐ @Model.Movie.Rating.Value.ToString("0.0")</span>
+                }
+                @if (Model.Movie.Duration.HasValue)
+                {
+                    <span class="meta-item">@Model.Movie.Duration min</span>
+                }
+            </div>
+
+            <div class="details-buttons">
+                <a asp-page="/Watch" asp-route-slug="@Model.Movie.Slug" class="btn btn-play">▶ Play</a>
+                <a asp-page="/Index" class="btn btn-secondary">← Back to Browse</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="details-info-section">
+        <div class="details-main">
+            <div class="details-description">
+                <h2>Overview</h2>
+                @if (!string.IsNullOrEmpty(Model.Movie.Description))
+                {
+                    <p>@Model.Movie.Description</p>
+                }
+                else
+                {
+                    <p class="no-info">No description available.</p>
+                }
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Movie.Genre))
+            {
+                <div class="details-item">
+                    <h3>Genres</h3>
+                    <p>@Model.Movie.Genre</p>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.Movie.Director))
+            {
+                <div class="details-item">
+                    <h3>Director</h3>
+                    <p>@Model.Movie.Director</p>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.Movie.Cast))
+            {
+                <div class="details-item">
+                    <h3>Cast</h3>
+                    <p>@Model.Movie.Cast</p>
+                </div>
+            }
+
+            <div class="details-item">
+                <h3>Added</h3>
+                <p>@Model.Movie.DateAdded.ToString("MMMM dd, yyyy")</p>
+            </div>
+
+            @if (Model.Movie.LastWatchedPosition > 0 && Model.Movie.Duration.HasValue)
+            {
+                var progressPercent = (double)Model.Movie.LastWatchedPosition / (Model.Movie.Duration.Value * 60) * 100;
+                var minutesWatched = Model.Movie.LastWatchedPosition / 60;
+                <div class="details-item">
+                    <h3>Watch Progress</h3>
+                    <p>@minutesWatched minutes watched (@progressPercent.ToString("0")%)</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: @(progressPercent)%"></div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Movie.PosterPath))
+        {
+            <div class="details-sidebar">
+                <img src="/Media/Posters/@Model.Movie.PosterPath" alt="@Model.Movie.Title" class="details-poster" />
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="error-page">
+        <h1>Movie Not Found</h1>
+        <p>The movie you're looking for doesn't exist.</p>
+        <a asp-page="/Index" class="btn btn-primary">← Back to Home</a>
+    </div>
+}

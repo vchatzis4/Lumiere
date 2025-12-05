@@ -1,0 +1,143 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="hero-section" style="@(Model.FeaturedMovie != null && !string.IsNullOrEmpty(Model.FeaturedMovie.BackdropPath) ? $"background-image: linear-gradient(to right, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.4) 50%, rgba(10,10,10,0.95) 100%), url('/Media/Posters/{Model.FeaturedMovie.BackdropPath}');" : "background: radial-gradient(ellipse at 30% 50%, #1a1a1a 0%, #0a0a0a 100%);")">
+    <div class="hero-content">
+        @if (Model.FeaturedMovie != null)
+        {
+            <h1 class="hero-title">@Model.FeaturedMovie.Title</h1>
+            <div class="hero-meta">
+                @if (Model.FeaturedMovie.Year.HasValue)
+                {
+                    <span class="hero-year">@Model.FeaturedMovie.Year</span>
+                }
+                @if (Model.FeaturedMovie.Rating.HasValue)
+                {
+                    <span class="hero-rating">@Model.FeaturedMovie.Rating.Value.ToString("0.0")</span>
+                }
+                @if (Model.FeaturedMovie.Duration.HasValue)
+                {
+                    <span class="hero-duration">@Model.FeaturedMovie.Duration min</span>
+                }
+            </div>
+            <p class="hero-description">@Model.FeaturedMovie.Description</p>
+            <div class="hero-buttons">
+                <a asp-page="/Watch" asp-route-slug="@Model.FeaturedMovie.Slug" class="btn btn-play">Play</a>
+                <a asp-page="/Movies/Details" asp-route-id="@Model.FeaturedMovie.Id" class="btn btn-info">Details</a>
+            </div>
+        }
+        else
+        {
+            <h1 class="hero-title">Your Cinema Awaits</h1>
+            <p class="hero-description">Build your private film collection. Add movies through the Library to begin your cinematic journey.</p>
+            <div class="hero-buttons">
+                <a asp-page="/Admin/Index" class="btn btn-play">Open Library</a>
+            </div>
+        }
+    </div>
+</div>
+
+@if (Model.ContinueWatching.Any())
+{
+    <div class="movie-section">
+        <h2 class="section-title">Continue Watching</h2>
+        <div class="movie-carousel">
+            @foreach (var movie in Model.ContinueWatching)
+            {
+                <div class="movie-card">
+                    <a asp-page="/Watch" asp-route-slug="@movie.Slug">
+                        @if (!string.IsNullOrEmpty(movie.PosterPath))
+                        {
+                            <img src="/Media/Posters/@movie.PosterPath" alt="@movie.Title" class="movie-poster" loading="lazy" />
+                        }
+                        else
+                        {
+                            <div class="movie-poster-placeholder">
+                                <span>@movie.Title</span>
+                            </div>
+                        }
+                        @if (movie.Duration.HasValue && movie.LastWatchedPosition > 0)
+                        {
+                            var progress = (double)movie.LastWatchedPosition / (movie.Duration.Value * 60) * 100;
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: @(progress)%"></div>
+                            </div>
+                        }
+                    </a>
+                    <div class="movie-info">
+                        <h3 class="movie-title">@movie.Title</h3>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@if (Model.RecentlyAdded.Any())
+{
+    <div class="movie-section">
+        <h2 class="section-title">Recently Added</h2>
+        <div class="movie-carousel">
+            @foreach (var movie in Model.RecentlyAdded)
+            {
+                <div class="movie-card">
+                    <a asp-page="/Watch" asp-route-slug="@movie.Slug">
+                        @if (!string.IsNullOrEmpty(movie.PosterPath))
+                        {
+                            <img src="/Media/Posters/@movie.PosterPath" alt="@movie.Title" class="movie-poster" loading="lazy" />
+                        }
+                        else
+                        {
+                            <div class="movie-poster-placeholder">
+                                <span>@movie.Title</span>
+                            </div>
+                        }
+                    </a>
+                    <div class="movie-info">
+                        <h3 class="movie-title">@movie.Title</h3>
+                        @if (movie.Year.HasValue)
+                        {
+                            <p class="movie-year">@movie.Year</p>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@foreach (var genre in Model.GenreMovies.Keys)
+{
+    <div class="movie-section">
+        <h2 class="section-title">@genre</h2>
+        <div class="movie-carousel">
+            @foreach (var movie in Model.GenreMovies[genre])
+            {
+                <div class="movie-card">
+                    <a asp-page="/Watch" asp-route-slug="@movie.Slug">
+                        @if (!string.IsNullOrEmpty(movie.PosterPath))
+                        {
+                            <img src="/Media/Posters/@movie.PosterPath" alt="@movie.Title" class="movie-poster" loading="lazy" />
+                        }
+                        else
+                        {
+                            <div class="movie-poster-placeholder">
+                                <span>@movie.Title</span>
+                            </div>
+                        }
+                    </a>
+                    <div class="movie-info">
+                        <h3 class="movie-title">@movie.Title</h3>
+                        @if (movie.Rating.HasValue)
+                        {
+                            <p class="movie-rating">@movie.Rating.Value.ToString("0.0")</p>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}

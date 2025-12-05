@@ -1,0 +1,155 @@
+@page
+@model PaymentIndexModel
+@{
+    ViewData["Title"] = "Payment";
+}
+
+<div class="admin-container">
+    <h1>Payment</h1>
+
+    <div class="admin-actions">
+        <div class="action-card">
+            <h2>Subscription Plans</h2>
+            <div class="payment-plans">
+                <div class="plan-card @(Model.CurrentPlan == "basic" ? "active" : "")">
+                    <h3>Basic</h3>
+                    <p class="price">$9.99<span>/month</span></p>
+                    <ul>
+                        <li>720p Streaming</li>
+                        <li>1 Device</li>
+                        <li>Limited Library</li>
+                    </ul>
+                    <form method="post" asp-page-handler="SelectPlan">
+                        <input type="hidden" name="plan" value="basic" />
+                        <button type="submit" class="btn @(Model.CurrentPlan == "basic" ? "btn-secondary" : "btn-primary")">
+                            @(Model.CurrentPlan == "basic" ? "Current Plan" : "Select")
+                        </button>
+                    </form>
+                </div>
+
+                <div class="plan-card featured @(Model.CurrentPlan == "standard" ? "active" : "")">
+                    <div class="plan-badge">Most Popular</div>
+                    <h3>Standard</h3>
+                    <p class="price">$14.99<span>/month</span></p>
+                    <ul>
+                        <li>1080p Streaming</li>
+                        <li>2 Devices</li>
+                        <li>Full Library</li>
+                    </ul>
+                    <form method="post" asp-page-handler="SelectPlan">
+                        <input type="hidden" name="plan" value="standard" />
+                        <button type="submit" class="btn @(Model.CurrentPlan == "standard" ? "btn-secondary" : "btn-primary")">
+                            @(Model.CurrentPlan == "standard" ? "Current Plan" : "Select")
+                        </button>
+                    </form>
+                </div>
+
+                <div class="plan-card @(Model.CurrentPlan == "premium" ? "active" : "")">
+                    <h3>Premium</h3>
+                    <p class="price">$19.99<span>/month</span></p>
+                    <ul>
+                        <li>4K + HDR Streaming</li>
+                        <li>4 Devices</li>
+                        <li>Full Library + Extras</li>
+                    </ul>
+                    <form method="post" asp-page-handler="SelectPlan">
+                        <input type="hidden" name="plan" value="premium" />
+                        <button type="submit" class="btn @(Model.CurrentPlan == "premium" ? "btn-secondary" : "btn-primary")">
+                            @(Model.CurrentPlan == "premium" ? "Current Plan" : "Select")
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Message != null)
+    {
+        <div class="scan-result">
+            <p>@Model.Message</p>
+        </div>
+    }
+
+    <div class="settings-section">
+        <h2>Payment Method</h2>
+        <form method="post" asp-page-handler="UpdatePayment" class="payment-form">
+            <div class="form-group">
+                <label for="cardName">Name on Card</label>
+                <input type="text" id="cardName" name="cardName" value="@Model.CardName" placeholder="John Doe" class="form-input" />
+            </div>
+            <div class="form-group">
+                <label for="cardNumber">Card Number</label>
+                <input type="text" id="cardNumber" name="cardNumber" value="@Model.CardNumberMasked" placeholder="**** **** **** ****" class="form-input" maxlength="19" />
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="expiry">Expiry Date</label>
+                    <input type="text" id="expiry" name="expiry" value="@Model.Expiry" placeholder="MM/YY" class="form-input" maxlength="5" />
+                </div>
+                <div class="form-group">
+                    <label for="cvv">CVV</label>
+                    <input type="text" id="cvv" name="cvv" placeholder="***" class="form-input" maxlength="4" />
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Update Payment Method</button>
+        </form>
+    </div>
+
+    <div class="settings-section">
+        <h2>Billing History</h2>
+        @if (Model.BillingHistory.Any())
+        {
+            <table class="movies-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.BillingHistory)
+                    {
+                        <tr>
+                            <td>@item.Date.ToString("MMM dd, yyyy")</td>
+                            <td>@item.Description</td>
+                            <td>$@item.Amount.ToString("0.00")</td>
+                            <td>
+                                <span class="status-badge @(item.Status == "Paid" ? "status-paid" : "status-pending")">
+                                    @item.Status
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-state">
+                <p>No billing history yet.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Format card number with spaces
+        document.getElementById('cardNumber')?.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+            let formatted = value.match(/.{1,4}/g)?.join(' ') || '';
+            e.target.value = formatted.substring(0, 19);
+        });
+
+        // Format expiry date
+        document.getElementById('expiry')?.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+    </script>
+}

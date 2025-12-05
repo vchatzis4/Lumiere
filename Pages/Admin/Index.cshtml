@@ -1,0 +1,106 @@
+@page
+@model AdminIndexModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="admin-container">
+    <h1>Admin Dashboard</h1>
+
+    <div class="admin-actions">
+        <div class="action-card">
+            <h2>Quick Actions</h2>
+            <form method="post" asp-page-handler="ScanFolder" class="action-form">
+                <button type="submit" class="btn btn-primary">🔍 Scan Media Folder</button>
+            </form>
+            <a asp-page="/Admin/AddMovie" class="btn btn-secondary">➕ Add Movie Manually</a>
+        </div>
+
+        @if (Model.ScanResult != null)
+        {
+            <div class="scan-result">
+                <p>✅ Scan complete! Found <strong>@Model.ScanResult.Count</strong> new movies.</p>
+            </div>
+        }
+    </div>
+
+    <div class="movies-list">
+        <h2>All Movies (@Model.Movies.Count)</h2>
+
+        @if (!Model.Movies.Any())
+        {
+            <div class="empty-state">
+                <p>No movies in your library yet.</p>
+                <p>Add movies by clicking "Add Movie Manually" or place video files in the Media/Movies folder and click "Scan Media Folder".</p>
+            </div>
+        }
+        else
+        {
+            <div class="search-box">
+                <form method="get">
+                    <input type="text" name="search" value="@Model.SearchTerm" placeholder="Search movies..." class="search-input" />
+                    <button type="submit" class="btn btn-search">Search</button>
+                </form>
+            </div>
+
+            <table class="movies-table">
+                <thead>
+                    <tr>
+                        <th>Poster</th>
+                        <th>Title</th>
+                        <th>Year</th>
+                        <th>Genre</th>
+                        <th>Rating</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var movie in Model.Movies)
+                    {
+                        <tr>
+                            <td>
+                                @if (!string.IsNullOrEmpty(movie.PosterPath))
+                                {
+                                    <img src="/Media/Posters/@movie.PosterPath" alt="@movie.Title" class="table-poster" />
+                                }
+                                else
+                                {
+                                    <div class="table-poster-placeholder">No Poster</div>
+                                }
+                            </td>
+                            <td><strong>@movie.Title</strong></td>
+                            <td>@movie.Year</td>
+                            <td>@movie.Genre</td>
+                            <td>@(movie.Rating?.ToString("0.0") ?? "N/A")</td>
+                            <td class="action-buttons">
+                                <a asp-page="/Admin/EditMovie" asp-route-id="@movie.Id" class="btn btn-small">✏️ Edit</a>
+                                <form method="post" asp-page-handler="Delete" asp-route-id="@movie.Id" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this movie?');">
+                                    <button type="submit" class="btn btn-small btn-danger">🗑️ Delete</button>
+                                </form>
+                                <a asp-page="/Watch" asp-route-slug="@movie.Slug" class="btn btn-small" target="_blank">▶️ Play</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+    <div class="settings-section">
+        <h2>Settings</h2>
+        <div class="settings-info">
+            <p><strong>Media Folder:</strong> @Model.MediaPath</p>
+            <p><strong>Database:</strong> @Model.DbPath</p>
+            <p><strong>Total Movies:</strong> @Model.Movies.Count</p>
+            <p><strong>TMDB API:</strong> @(string.IsNullOrEmpty(Model.TmdbApiKey) ? "❌ Not configured" : "✅ Configured")</p>
+        </div>
+        @if (string.IsNullOrEmpty(Model.TmdbApiKey))
+        {
+            <div class="alert alert-warning">
+                <p>⚠️ TMDB API key not configured. Movie metadata won't be fetched automatically.</p>
+                <p>Add your API key to appsettings.json under "TMDB:ApiKey"</p>
+                <p>Get a free API key at: <a href="https://www.themoviedb.org/settings/api" target="_blank">https://www.themoviedb.org/settings/api</a></p>
+            </div>
+        }
+    </div>
+</div>

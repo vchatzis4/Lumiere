@@ -1,0 +1,258 @@
+@page "{slug}"
+@model WatchModel
+@{
+    ViewData["Title"] = Model.Movie?.Title ?? "Watch";
+
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='32' fill='%23E50914'/><rect x='14' y='30' width='36' height='24' rx='2' fill='%231a1a1a'/><path d='M 14 30 L 16 20 L 52 20 L 50 30 Z' fill='%23f5f5f5'/><rect x='16' y='20' width='5' height='10' fill='%231a1a1a' transform='skewX(-20)'/><rect x='25' y='20' width='5' height='10' fill='%231a1a1a' transform='skewX(-20)'/><rect x='34' y='20' width='5' height='10' fill='%231a1a1a' transform='skewX(-20)'/><rect x='43' y='20' width='5' height='10' fill='%231a1a1a' transform='skewX(-20)'/><circle cx='32' cy='42' r='6' fill='%23E50914'/><polygon points='30,39 30,45 36,42' fill='%23ffffff'/></svg>">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <link rel="stylesheet" href="~/css/player.css" asp-append-version="true" />
+</head>
+<body>
+    @if (Model.Movie != null)
+
+    {
+        <div class="player-container">
+            <div class="back-button">
+                <a asp-page="/Index">← Back to Browse</a>
+            </div>
+
+            <div class="custom-player-wrapper">
+                <!-- DEBUG: SubtitlePath = @Model.Movie.SubtitlePath -->
+                <!-- DEBUG: File Exists = @(!string.IsNullOrEmpty(Model.Movie.SubtitlePath) && System.IO.File.Exists(Model.Movie.SubtitlePath)) -->
+                <!-- DEBUG: Subtitle URL = /Media/Subtitles/@System.IO.Path.GetFileName(Model.Movie.SubtitlePath) -->
+                <video id="player" playsinline controls preload="metadata">
+                    <source src="/api/stream/@Model.Movie.Id" type="video/mp4">
+                    @if (!string.IsNullOrEmpty(Model.Movie.SubtitlePath) && System.IO.File.Exists(Model.Movie.SubtitlePath))
+                    {
+                        <track kind="subtitles" src="/api/subtitle/@Model.Movie.Id" srclang="el" label="Greek" default>
+                    }
+                    else
+                    {
+                        <!-- DEBUG: Subtitle not loaded. SubtitlePath = @Model.Movie.SubtitlePath -->
+                    }
+                </video>
+            </div>
+
+            <div class="movie-details">
+                <h1>@Model.Movie.Title</h1>
+                <div class="movie-meta">
+                    @if (Model.Movie.Year.HasValue)
+                    {
+                        <span>@Model.Movie.Year</span>
+                    }
+                    @if (Model.Movie.Rating.HasValue)
+                    {
+                        <span>⭐ @Model.Movie.Rating.Value.ToString("0.0")</span>
+                    }
+                    @if (Model.Movie.Duration.HasValue)
+                    {
+                        <span>@Model.Movie.Duration min</span>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Movie.Genre))
+                    {
+                        <span>@Model.Movie.Genre</span>
+                    }
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Movie.Description))
+
+                {
+                    <p class="movie-description">@Model.Movie.Description</p>
+                }
+                @if (!string.IsNullOrEmpty(Model.Movie.Director))
+
+                {
+                    <p><strong>Director:</strong> @Model.Movie.Director</p>
+                }
+                @if (!string.IsNullOrEmpty(Model.Movie.Cast))
+
+                {
+                    <p><strong>Cast:</strong> @Model.Movie.Cast</p>
+                }
+            </div>
+        </div>
+
+        <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+        <script>
+            const player = new Plyr('#player', {
+                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'fullscreen'],
+                settings: ['captions', 'speed'],
+                speed: { selected: 1, options: [0.5, 1, 1.5, 2] },
+                captions: { active: true, language: 'el', update: true },
+                hideControls: true,
+                resetOnEnd: false,
+                keyboard: { focused: true, global: true }
+            });
+
+            var hideControlsTimeout;
+            var lastPosition = @Model.Movie.LastWatchedPosition;
+            var hasResumed = false;
+
+            console.log('Last watched position:', lastPosition);
+
+            // Resume from last position when metadata is loaded
+            player.on('loadedmetadata', function() {
+                console.log('Metadata loaded, duration:', player.duration);
+                if (lastPosition > 0 && !hasResumed) {
+                    console.log('Seeking to position:', lastPosition);
+                    player.currentTime = lastPosition;
+                    hasResumed = true;
+                }
+            });
+
+            // Fallback: also try on canplay event
+            player.on('canplay', function() {
+                if (lastPosition > 0 && !hasResumed) {
+                    console.log('Can play - seeking to position:', lastPosition);
+                    player.currentTime = lastPosition;
+                    hasResumed = true;
+                }
+            });
+
+            // Custom control hiding logic for fullscreen
+            player.on('enterfullscreen', function() {
+                setupFullscreenControls();
+            });
+
+            player.on('exitfullscreen', function() {
+                document.body.style.cursor = '';
+                clearTimeout(hideControlsTimeout);
+            });
+
+            function setupFullscreenControls() {
+                var plyrContainer = document.querySelector('.plyr');
+
+                function showControls() {
+                    plyrContainer.classList.remove('plyr--hide-controls');
+                    document.body.style.cursor = 'default';
+
+                    clearTimeout(hideControlsTimeout);
+                    hideControlsTimeout = setTimeout(function() {
+                        if (player.fullscreen.active && player.playing) {
+                            plyrContainer.classList.add('plyr--hide-controls');
+                            document.body.style.cursor = 'none';
+                        }
+                    }, 3000);
+                }
+
+                // Show controls on mouse movement
+                document.addEventListener('mousemove', function(e) {
+                    if (player.fullscreen.active) {
+                        showControls();
+                    }
+                });
+
+                // Show controls on click
+                document.addEventListener('click', function(e) {
+                    if (player.fullscreen.active) {
+                        showControls();
+                    }
+                });
+
+                // Show controls initially
+                showControls();
+            }
+
+            // Function to save watch position
+            function saveWatchPosition() {
+                try {
+                    var currentTime = Math.floor(player.currentTime);
+                    if (currentTime > 0) {
+                        console.log('Saving watch position:', currentTime, 'seconds');
+                        fetch('/api/watchposition/@Model.Movie.Id', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ position: currentTime })
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                console.log('Position saved successfully:', currentTime);
+                            } else {
+                                console.error('Failed to save position, status:', response.status);
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error saving position:', err);
+                        });
+                    }
+                } catch (ex) {
+                    console.error('Error saving position:', ex);
+                }
+            }
+
+            // Save playback position every 2 seconds while playing
+            setInterval(function() {
+                if (player && player.playing) {
+                    saveWatchPosition();
+                }
+            }, 2000);
+
+            // Save position on pause
+            player.on('pause', function() {
+                saveWatchPosition();
+            });
+
+            // Save position on seeking
+            player.on('seeked', function() {
+                saveWatchPosition();
+            });
+
+            // Save position when video ends
+            player.on('ended', function() {
+                saveWatchPosition();
+            });
+
+            // Save position when page visibility changes (user switches tabs)
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    saveWatchPosition();
+                }
+            });
+
+            // Save position when leaving the page
+            window.addEventListener('beforeunload', function() {
+                try {
+                    var currentTime = Math.floor(player.currentTime);
+                    if (currentTime > 0) {
+                        // Use sendBeacon for reliable delivery even when page is closing
+                        var data = JSON.stringify({ position: currentTime });
+                        navigator.sendBeacon('/api/watchposition/@Model.Movie.Id', data);
+                    }
+                } catch (ex) {
+                    // ignore
+                }
+            });
+
+            // Also save on pagehide event (more reliable on mobile)
+            window.addEventListener('pagehide', function() {
+                try {
+                    var currentTime = Math.floor(player.currentTime);
+                    if (currentTime > 0) {
+                        var data = JSON.stringify({ position: currentTime });
+                        navigator.sendBeacon('/api/watchposition/@Model.Movie.Id', data);
+                    }
+                } catch (ex) {
+                    // ignore
+                }
+            });
+        </script>
+    }
+
+    else
+
+    {
+        <div class="error-message">
+            <h1>Movie not found</h1>
+            <a asp-page="/Index">← Back to Browse</a>
+        </div>
+    }
+</body>
+</html>

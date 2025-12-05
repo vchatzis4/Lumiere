@@ -1,0 +1,69 @@
+@page
+@model SearchModel
+@{
+    ViewData["Title"] = "Search";
+}
+
+<div class="search-container">
+    <h1>Search Movies</h1>
+
+    <div class="search-box-large">
+        <form method="get" class="search-form">
+            <input type="text" name="q" value="@Model.Query" placeholder="Search for movies..." class="search-input-large" autofocus />
+            <button type="submit" class="btn btn-search">Search</button>
+        </form>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Query))
+    {
+        <div class="search-results">
+            <h2>Results for "@Model.Query" (@Model.Movies.Count found)</h2>
+
+            @if (!Model.Movies.Any())
+            {
+                <div class="empty-state">
+                    <p>No movies found matching "@Model.Query"</p>
+                </div>
+            }
+            else
+            {
+                <div class="movies-grid">
+                    @foreach (var movie in Model.Movies)
+                    {
+                        <div class="movie-card">
+                            <a asp-page="/Watch" asp-route-slug="@movie.Slug">
+                                @if (!string.IsNullOrEmpty(movie.PosterPath))
+                                {
+                                    <img src="/Media/Posters/@movie.PosterPath" alt="@movie.Title" class="movie-poster" />
+                                }
+                                else
+                                {
+                                    <div class="movie-poster-placeholder">
+                                        <span>@movie.Title</span>
+                                    </div>
+                                }
+                            </a>
+                            <div class="movie-info">
+                                <h3 class="movie-title">@movie.Title</h3>
+                                <div class="movie-meta">
+                                    @if (movie.Year.HasValue)
+                                    {
+                                        <span>@movie.Year</span>
+                                    }
+                                    @if (movie.Rating.HasValue)
+                                    {
+                                        <span>⭐ @movie.Rating.Value.ToString("0.0")</span>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrEmpty(movie.Description))
+                                {
+                                    <p class="movie-description">@movie.Description.Substring(0, Math.Min(150, movie.Description.Length))...</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>

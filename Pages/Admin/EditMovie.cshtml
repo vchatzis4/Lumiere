@@ -1,0 +1,93 @@
+@page "{id:int}"
+@model EditMovieModel
+@{
+    ViewData["Title"] = "Edit Movie";
+}
+
+<div class="admin-container">
+    <h1>Edit Movie</h1>
+
+    @if (Model.Movie != null)
+    {
+        <div class="form-container">
+            <form method="post" class="movie-form">
+                <input type="hidden" asp-for="Movie.Id" />
+                <input type="hidden" asp-for="Movie.FilePath" />
+                <input type="hidden" asp-for="Movie.DateAdded" />
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="Movie.Title">Title</label>
+                        <input asp-for="Movie.Title" class="form-control" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Movie.Year">Year</label>
+                        <input asp-for="Movie.Year" type="number" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Movie.Description">Description</label>
+                    <textarea asp-for="Movie.Description" class="form-control" rows="4"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="Movie.Genre">Genre</label>
+                        <input asp-for="Movie.Genre" class="form-control" placeholder="Action, Drama, Comedy" />
+                        <small>Separate multiple genres with commas</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Movie.Rating">Rating (0-10)</label>
+                        <input asp-for="Movie.Rating" type="number" step="0.1" min="0" max="10" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="Movie.Duration">Duration (minutes)</label>
+                        <input asp-for="Movie.Duration" type="number" class="form-control" />
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Movie.Director">Director</label>
+                        <input asp-for="Movie.Director" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Movie.Cast">Cast</label>
+                    <input asp-for="Movie.Cast" class="form-control" placeholder="Actor 1, Actor 2, Actor 3" />
+                    <small>Separate multiple actors with commas</small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Poster Path</label>
+                        <input value="@Model.Movie.PosterPath" class="form-control" readonly />
+                    </div>
+
+                    <div class="form-group">
+                        <label>File Path</label>
+                        <input value="@Model.Movie.FilePath" class="form-control" readonly />
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="submit" asp-page-handler="RefreshMetadata" class="btn btn-secondary">🔄 Refresh from TMDB</button>
+                    <a asp-page="/Admin/Index" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-error">
+            Movie not found.
+        </div>
+        <a asp-page="/Admin/Index" class="btn btn-secondary">Back to Admin</a>
+    }
+</div>

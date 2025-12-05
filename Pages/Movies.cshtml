@@ -1,0 +1,70 @@
+@page
+@model MoviesModel
+@{
+    ViewData["Title"] = "All Movies";
+}
+
+<div class="browse-container">
+    <h1>All Movies</h1>
+
+    <div class="filter-bar">
+        <form method="get" class="filter-form">
+            <select name="genre" asp-for="SelectedGenre" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Genres</option>
+                @foreach (var genre in Model.Genres)
+                {
+                    <option value="@genre">@genre</option>
+                }
+            </select>
+
+            <select name="sort" asp-for="SortBy" class="filter-select" onchange="this.form.submit()">
+                <option value="recent">Recently Added</option>
+                <option value="title">Title</option>
+                <option value="year">Year</option>
+                <option value="rating">Rating</option>
+            </select>
+        </form>
+    </div>
+
+    @if (!Model.Movies.Any())
+    {
+        <div class="empty-state">
+            <p>No movies found.</p>
+        </div>
+    }
+    else
+    {
+        <div class="movies-grid">
+            @foreach (var movie in Model.Movies)
+            {
+                <div class="movie-card">
+                    <a asp-page="/Watch" asp-route-slug="@movie.Slug">
+                        @if (!string.IsNullOrEmpty(movie.PosterPath))
+                        {
+                            <img src="/Media/Posters/@movie.PosterPath" alt="@movie.Title" class="movie-poster" />
+                        }
+                        else
+                        {
+                            <div class="movie-poster-placeholder">
+                                <span>@movie.Title</span>
+                            </div>
+                        }
+                    </a>
+                    <div class="movie-info">
+                        <h3 class="movie-title">@movie.Title</h3>
+                        <div class="movie-meta">
+                            @if (movie.Year.HasValue)
+                            {
+                                <span>@movie.Year</span>
+                            }
+                            @if (movie.Rating.HasValue)
+                            {
+                                <span>⭐ @movie.Rating.Value.ToString("0.0")</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
