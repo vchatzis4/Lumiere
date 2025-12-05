@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace MyNetflixClone.Services;
+namespace Lumière.Services;
 
 public class TMDBCrew
 {

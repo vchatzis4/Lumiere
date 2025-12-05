@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "================================================"
-echo "  MyFlix - Personal Netflix Clone Builder"
+echo "  Lumiere - Personal Cinema Builder"
 echo "================================================"
 echo ""
 
@@ -45,7 +45,7 @@ echo "  Build Successful!"
 echo "================================================"
 echo ""
 echo "Your executable is located at:"
-echo "  $(pwd)/publish/MyNetflixClone"
+echo "  $(pwd)/publish/Lumiere"
 echo ""
 echo "To distribute:"
 echo "  1. Copy the executable from publish folder"

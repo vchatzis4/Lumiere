@@ -428,6 +428,22 @@ a {
     background: #a62d3d;
 }
 
+.btn-refresh {
+    background: var(--noir-charcoal);
+    color: var(--gold-light);
+    border: 1px solid var(--gold-primary);
+}
+
+.btn-refresh:hover {
+    background: var(--gold-primary);
+    color: var(--noir-black);
+}
+
+.btn-refresh:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    MOVIE SECTIONS
    ═══════════════════════════════════════════════════════════════ */

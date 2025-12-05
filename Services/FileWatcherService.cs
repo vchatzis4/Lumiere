@@ -1,6 +1,6 @@
-using MyNetflixClone.Data;
+using Lumière.Data;
 
-namespace MyNetflixClone.Services;
+namespace Lumière.Services;
 
 public class FileWatcherService : IHostedService, IDisposable
 {

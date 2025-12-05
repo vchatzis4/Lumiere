@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MyNetflixClone.Models;
-using MyNetflixClone.Services;
+using Lumière.Models;
+using Lumière.Services;
 
-namespace MyNetflixClone.Pages;
+namespace Lumière.Pages;
 
 public class IndexModel : PageModel
 {

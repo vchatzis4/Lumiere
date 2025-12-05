@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MyNetflixClone.Services;
+using Lumière.Services;
 
-namespace MyNetflixClone.Pages.Admin;
+namespace Lumière.Pages.Admin;
 
 public class AddMovieModel : PageModel
 {

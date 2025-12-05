@@ -30,7 +30,7 @@ cp appsettings.template.json appsettings.json
 
 **Option A: Quick Development Run**
 ```bash
-cd MyNetflixClone
+cd Lumière
 dotnet run
 ```
 

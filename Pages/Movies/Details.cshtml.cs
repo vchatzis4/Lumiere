@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MyNetflixClone.Models;
-using MyNetflixClone.Services;
+using Lumière.Models;
+using Lumière.Services;
 
-namespace MyNetflixClone.Pages.Movies;
+namespace Lumière.Pages.Movies;
 
 public class DetailsModel : PageModel
 {

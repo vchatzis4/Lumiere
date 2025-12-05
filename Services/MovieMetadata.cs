@@ -1,4 +1,4 @@
-namespace MyNetflixClone.Services;
+namespace Lumière.Services;
 
 public class MovieMetadata
 {

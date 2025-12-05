@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using MyNetflixClone.Data;
-using MyNetflixClone.Models;
+using Lumière.Data;
+using Lumière.Models;
 
-namespace MyNetflixClone.Services;
+namespace Lumière.Services;
 
 public class MovieService
 {
@@ -125,15 +125,21 @@ public class MovieService
 
     public async Task<Movie> AddMovieAsync(string filePath, string? customTitle = null)
     {
-        var fileName = Path.GetFileNameWithoutExtension(filePath);
-        var title = customTitle ?? fileName;
+        // Use smart filename parser to extract title and year
+        var parsed = FilenameParser.Parse(filePath);
+        var title = customTitle ?? parsed.Title;
+        var searchYear = parsed.Year;
+
+        Console.WriteLine($"[AddMovie] Original filename: {parsed.OriginalFilename}");
+        Console.WriteLine($"[AddMovie] Parsed title: {parsed.Title}");
+        Console.WriteLine($"[AddMovie] Parsed year: {parsed.Year}");
+        Console.WriteLine($"[AddMovie] Quality: {parsed.Quality}, Source: {parsed.Source}");
 
         // Check for subtitle file in Subtitles folder
         var subtitleFileName = Path.GetFileNameWithoutExtension(filePath) + ".srt";
         var subtitlePath = Path.Combine(_subtitlesPath, subtitleFileName);
         var hasSubtitle = File.Exists(subtitlePath);
 
-        Console.WriteLine($"[AddMovie] Movie: {fileName}");
         Console.WriteLine($"[AddMovie] Looking for subtitle: {subtitlePath}");
         Console.WriteLine($"[AddMovie] Subtitle exists: {hasSubtitle}");
 
@@ -156,8 +162,8 @@ public class MovieService
             DateAdded = DateTime.UtcNow
         };
 
-        // Try to fetch metadata from TMDB
-        var metadata = await _tmdbService.SearchMovieAsync(title);
+        // Try to fetch metadata from TMDB (use parsed year for better accuracy)
+        var metadata = await _tmdbService.SearchMovieAsync(title, searchYear);
         if (metadata != null)
         {
             movie.Title = metadata.Title;
@@ -304,5 +310,122 @@ public class MovieService
         }
 
         return newMovies;
+    }
+
+    /// <summary>
+    /// Refreshes metadata for a movie by re-fetching from TMDB.
+    /// Uses smart filename parsing to get clean title and year.
+    /// </summary>
+    public async Task<bool> RefreshMetadataAsync(int movieId)
+    {
+        var movie = await GetMovieByIdAsync(movieId);
+        if (movie == null)
+            return false;
+
+        // Parse the filename to get clean title and year
+        var parsed = FilenameParser.Parse(movie.FilePath);
+        var searchTitle = parsed.Title;
+        var searchYear = parsed.Year;
+
+        Console.WriteLine($"[RefreshMetadata] Movie ID: {movieId}");
+        Console.WriteLine($"[RefreshMetadata] Parsed title: {searchTitle}");
+        Console.WriteLine($"[RefreshMetadata] Parsed year: {searchYear}");
+
+        // Search TMDB with parsed info
+        var metadata = await _tmdbService.SearchMovieAsync(searchTitle, searchYear);
+        if (metadata == null)
+        {
+            Console.WriteLine($"[RefreshMetadata] No TMDB results found");
+            return false;
+        }
+
+        Console.WriteLine($"[RefreshMetadata] Found: {metadata.Title} ({metadata.Year})");
+
+        // Update movie metadata
+        movie.Title = metadata.Title;
+        movie.Description = metadata.Description;
+        movie.Year = metadata.Year;
+        movie.Genre = metadata.Genre;
+        movie.Rating = metadata.Rating;
+        movie.Duration = metadata.Duration;
+        movie.Director = metadata.Director;
+        movie.Cast = metadata.Cast;
+
+        // Update slug based on new title
+        var newBaseSlug = Movie.GenerateSlug(metadata.Title);
+        var newSlug = newBaseSlug;
+        var counter = 1;
+        while (await _context.Movies.AnyAsync(m => m.Slug == newSlug && m.Id != movie.Id))
+        {
+            newSlug = $"{newBaseSlug}-{counter}";
+            counter++;
+        }
+        movie.Slug = newSlug;
+
+        // Download new poster if available
+        if (!string.IsNullOrEmpty(metadata.PosterUrl))
+        {
+            try
+            {
+                var posterBytes = await _tmdbService.DownloadPosterAsync(metadata.PosterUrl);
+                if (posterBytes != null && posterBytes.Length > 0)
+                {
+                    // Delete old poster if exists
+                    if (!string.IsNullOrEmpty(movie.PosterPath))
+                    {
+                        var oldPosterPath = Path.Combine(_postersPath, movie.PosterPath);
+                        if (File.Exists(oldPosterPath))
+                        {
+                            File.Delete(oldPosterPath);
+                        }
+                    }
+
+                    var posterFileName = $"{movie.Title.Replace(" ", "_").Replace("/", "_").Replace(":", "_")}_{DateTime.Now.Ticks}.jpg";
+                    var posterPath = Path.Combine(_postersPath, posterFileName);
+                    await File.WriteAllBytesAsync(posterPath, posterBytes);
+                    movie.PosterPath = posterFileName;
+                    Console.WriteLine($"[RefreshMetadata] New poster saved: {posterFileName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[RefreshMetadata] Error downloading poster: {ex.Message}");
+            }
+        }
+
+        // Download new backdrop if available
+        if (!string.IsNullOrEmpty(metadata.BackdropUrl))
+        {
+            try
+            {
+                var backdropBytes = await _tmdbService.DownloadPosterAsync(metadata.BackdropUrl);
+                if (backdropBytes != null && backdropBytes.Length > 0)
+                {
+                    // Delete old backdrop if exists
+                    if (!string.IsNullOrEmpty(movie.BackdropPath))
+                    {
+                        var oldBackdropPath = Path.Combine(_postersPath, movie.BackdropPath);
+                        if (File.Exists(oldBackdropPath))
+                        {
+                            File.Delete(oldBackdropPath);
+                        }
+                    }
+
+                    var backdropFileName = $"{movie.Title.Replace(" ", "_").Replace("/", "_").Replace(":", "_")}_{DateTime.Now.Ticks}_backdrop.jpg";
+                    var backdropPath = Path.Combine(_postersPath, backdropFileName);
+                    await File.WriteAllBytesAsync(backdropPath, backdropBytes);
+                    movie.BackdropPath = backdropFileName;
+                    Console.WriteLine($"[RefreshMetadata] New backdrop saved: {backdropFileName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[RefreshMetadata] Error downloading backdrop: {ex.Message}");
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        Console.WriteLine($"[RefreshMetadata] Metadata updated successfully");
+        return true;
     }
 }

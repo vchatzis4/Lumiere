@@ -1,4 +1,4 @@
-namespace MyNetflixClone.Services;
+namespace Lumière.Services;
 
 public class TMDBService
 {
@@ -18,7 +18,7 @@ public class TMDBService
         };
     }
 
-    public async Task<MovieMetadata?> SearchMovieAsync(string title)
+    public async Task<MovieMetadata?> SearchMovieAsync(string title, int? year = null)
     {
         if (string.IsNullOrEmpty(_apiKey))
             return null;
@@ -27,6 +27,12 @@ public class TMDBService
         {
             var encodedTitle = Uri.EscapeDataString(title);
             var url = $"{BaseUrl}/search/movie?api_key={_apiKey}&query={encodedTitle}";
+
+            // Add year parameter for more accurate results
+            if (year.HasValue)
+            {
+                url += $"&year={year.Value}";
+            }
 
             var response = await _httpClient.GetStringAsync(url);
             var searchResult = System.Text.Json.JsonSerializer.Deserialize<TMDBSearchResult>(response, _jsonOptions);

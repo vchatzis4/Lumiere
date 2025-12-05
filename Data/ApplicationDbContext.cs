@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using MyNetflixClone.Models;
+using Lumière.Models;
 
-namespace MyNetflixClone.Data;
+namespace Lumière.Data;
 
 public class ApplicationDbContext : DbContext
 {

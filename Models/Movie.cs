@@ -1,4 +1,4 @@
-namespace MyNetflixClone.Models;
+namespace Lumière.Models;
 
 public class Movie
 {

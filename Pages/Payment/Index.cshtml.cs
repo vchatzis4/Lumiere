@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace MyNetflixClone.Pages.Payment;
+namespace Lumière.Pages.Payment;
 
 public class PaymentIndexModel : PageModel
 {

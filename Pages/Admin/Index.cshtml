@@ -74,6 +74,7 @@
                             <td>@(movie.Rating?.ToString("0.0") ?? "N/A")</td>
                             <td class="action-buttons">
                                 <a asp-page="/Admin/EditMovie" asp-route-id="@movie.Id" class="btn btn-small">✏️ Edit</a>
+                                <button type="button" class="btn btn-small btn-refresh" onclick="refreshMetadata(@movie.Id, this)">🔄 Refresh</button>
                                 <form method="post" asp-page-handler="Delete" asp-route-id="@movie.Id" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this movie?');">
                                     <button type="submit" class="btn btn-small btn-danger">🗑️ Delete</button>
                                 </form>
@@ -104,3 +105,35 @@
         }
     </div>
 </div>
+
+@section Scripts {
+<script>
+async function refreshMetadata(movieId, button) {
+    const originalText = button.textContent;
+    button.textContent = '⏳ Loading...';
+    button.disabled = true;
+
+    try {
+        const response = await fetch(`/api/movies/${movieId}/refresh-metadata`, {
+            method: 'POST'
+        });
+
+        if (response.ok) {
+            button.textContent = '✅ Done!';
+            // Reload the page after a short delay to show updated data
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            const data = await response.json();
+            alert(data.message || 'Failed to refresh metadata');
+            button.textContent = originalText;
+            button.disabled = false;
+        }
+    } catch (error) {
+        console.error('Error refreshing metadata:', error);
+        alert('Error refreshing metadata. Check console for details.');
+        button.textContent = originalText;
+        button.disabled = false;
+    }
+}
+</script>
+}

@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using MyNetflixClone.Data;
-using MyNetflixClone.Services;
+using Lumière.Data;
+using Lumière.Services;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -61,7 +61,7 @@ using (var scope = app.Services.CreateScope())
 
         foreach (var movie in moviesWithoutSlugs)
         {
-            var baseSlug = MyNetflixClone.Models.Movie.GenerateSlug(movie.Title);
+            var baseSlug = Lumière.Models.Movie.GenerateSlug(movie.Title);
             var slug = baseSlug;
             var counter = 1;
 
@@ -178,6 +178,25 @@ app.MapGet("/api/subtitle/{id:int}", async (int id, MovieService movieService) =
     {
         Console.WriteLine($"Error serving subtitle for movie ID {id}: {ex.Message}");
         return Results.Problem($"Error loading subtitle: {ex.Message}");
+    }
+});
+
+// API Endpoint for refreshing movie metadata from TMDB
+app.MapPost("/api/movies/{id:int}/refresh-metadata", async (int id, MovieService movieService) =>
+{
+    try
+    {
+        var success = await movieService.RefreshMetadataAsync(id);
+        if (success)
+        {
+            return Results.Ok(new { message = "Metadata refreshed successfully" });
+        }
+        return Results.NotFound(new { message = "Movie not found or no TMDB results" });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error refreshing metadata for movie ID {id}: {ex.Message}");
+        return Results.Problem($"Error refreshing metadata: {ex.Message}");
     }
 });
 
