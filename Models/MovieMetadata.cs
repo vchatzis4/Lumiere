@@ -1,4 +1,4 @@
-namespace Lumière.Services;
+namespace Lumière.Models;
 
 public class MovieMetadata
 {

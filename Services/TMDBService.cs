@@ -1,3 +1,5 @@
+using Lumière.Models;
+
 namespace Lumière.Services;
 
 public class TMDBService
